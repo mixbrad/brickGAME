@@ -1,0 +1,80 @@
+import pygame
+import sys
+
+# Configurações do jogo
+SCREEN_WIDTH, SCREEN_HEIGHT = 500, 770
+BALL_SIZE = 5
+PADDLE_WIDTH, PADDLE_HEIGHT = 60, 20
+PADDLE_SPEED = 100
+BRICK_WIDTH, BRICK_HEIGHT = 35, 10
+BALL_COLOR = (255, 255, 255)
+PADDLE_COLOR = (255, 255, 255)
+BG_COLOR = (0, 0, 0)
+
+# Inicializando o Pygame
+pygame.init()
+
+# Configurando a tela
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Configurando o relógio
+clock = pygame.time.Clock()
+
+# Criando as bolas
+balls = [pygame.Rect(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, BALL_SIZE, BALL_SIZE) for _ in range(3)]
+
+# Criando o rebatedor
+paddle = pygame.Rect(SCREEN_WIDTH // 2, SCREEN_HEIGHT - PADDLE_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT)
+
+# Criando os tijolos
+bricks = [pygame.Rect(x, y, BRICK_WIDTH, BRICK_HEIGHT) for x in range(0, SCREEN_WIDTH, BRICK_WIDTH) for y in range(0, SCREEN_HEIGHT // 2, BRICK_HEIGHT)]
+
+# Calculando as cores dos tijolos
+brick_colors = [(255 - y // (SCREEN_HEIGHT // 2) * 255, 0, y // (SCREEN_HEIGHT // 2) * 255) for y in range(0, SCREEN_HEIGHT // 2, BRICK_HEIGHT)]
+
+# Loop principal do jogo
+while True:
+    # Verificando eventos
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    # Atualizando a posição das bolas e do rebatedor
+    for ball in balls:
+        ball.x += 1
+        ball.y += 1
+        if ball.colliderect(paddle):
+            ball.y -= 1
+        if ball.x < 0 or ball.x > SCREEN_WIDTH - BALL_SIZE:
+            ball.x -= 1
+        if ball.y < 0:
+            ball.y -= 1
+        if ball.y > SCREEN_HEIGHT - BALL_SIZE:
+            balls.remove(ball)
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        paddle.x -= PADDLE_SPEED
+    if keys[pygame.K_RIGHT]:
+        paddle.x += PADDLE_SPEED
+
+    # Verificando colisões com os tijolos
+    for brick in bricks:
+        if brick.colliderect(paddle):
+            bricks.remove(brick)
+
+    # Preenchendo o fundo
+    screen.fill(BG_COLOR)
+
+    # Desenhando as bolas, o rebatedor e os tijolos
+    for ball in balls:
+        pygame.draw.rect(screen, BALL_COLOR, ball)
+    pygame.draw.rect(screen, PADDLE_COLOR, paddle)
+    for i, brick in enumerate(bricks):
+        pygame.draw.rect(screen, brick_colors[i], brick)
+
+    # Atualizando a tela
+    pygame.display.flip()
+
+    # Limitando a 60 FPS
+    clock.tick(60)
